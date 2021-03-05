@@ -34,6 +34,7 @@
   <run_depend>patroller_ctrl</run_depend>
 
   <run_depend>message_runtime</run_depend>
+  <run_depend>model</run_depend>
 
   <!-- Dependencies needed only for running tests. -->
   <!-- <test_depend>rospy</test_depend> -->
@@ -43,5 +44,7 @@
   <!-- <test_depend>tf</test_depend> -->
   <!-- <test_depend>rosbag</test_depend> -->
   <!-- <test_depend>dynamic_reconfigure</test_depend> -->
+
+  <export></export>
 
 </package>

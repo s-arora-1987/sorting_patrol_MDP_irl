@@ -5,34 +5,18 @@ import subprocess
 import multiprocessing
 import random
 import cPickle as pickle
-import os
 import operator
 import time
 import numpy as np
 import util.classes
-# from patrol.model import boyd2MapParams, OGMap, PatrolModel 
-from sortingMDP.model import sortingModel,InspectAfterPicking,\
-PlaceOnConveyor,PlaceInBin,Pick,ClaimNewOnion,InspectWithoutPicking,\
-ClaimNextInList,sortingState 
-from sortingMDP.model import sortingModel2,\
-PlaceInBinClaimNextInList,sortingModelbyPSuresh,\
-sortingModelbyPSuresh2,sortingModelbyPSuresh3,\
-sortingModelbyPSuresh4,sortingModelbyPSuresh2WOPlaced,\
-sortingModelbyPSuresh3multipleInit
 
-from sortingMDP.reward import sortingReward2,\
-sortingReward3,sortingReward4,sortingReward5,\
-sortingReward6,sortingReward7,sortingReward7WPlaced
-
-from mdp.solvers import *
-import mdp.agent
-from mdp.simulation import *
 import re
 
 import rospy
 from std_msgs.msg import Int32MultiArray
-from sorting_patrol_MDP_irl.srv import requestPolicy
+from sorting_patrol_MDP_irl.srv import requestPolicy,requestPolicyResponse
 
+import os
 home = os.environ['HOME']
 def get_home():
     global home
@@ -158,7 +142,8 @@ def parse_sorting_policy_encode_array(buf):
 ##############################################################
 ###############################################################
 
-def cb_runRobustIrlGetPolicy(msg):
+# def cb_runRobustIrlGetPolicy(): 
+def cb_runRobustIrlGetPolicy(msg): 
     # service call back running a session and returning learned policy
     global inputDcode, numSessionsSoFar, num_Trajsofar, reward_dim, learned_mu_E, \
     lineFoundWeights, lineFeatureExpec, runAvg_learnedDistr_obsfeatures
@@ -230,12 +215,13 @@ def cb_runRobustIrlGetPolicy(msg):
         print("policyString ",policyString)
         parse_sorting_policy_encode_array(policyString)
         print("array_pol ",array_pol)
-            
+    
     else:
         print ("Bad Run: Optimization stopped half way, Try again. ")
         print ("contentExists"+str(contentExists))
 
-    return array_pol
+    # return array_pol
+    return requestPolicyResponse(array_pol)
 
 if __name__ == "__main__": 
 
@@ -251,6 +237,9 @@ if __name__ == "__main__":
     send it through pub-sub 
 
     '''
+    # only for testing the call to solver 
+    # cb_runRobustIrlGetPolicy()
+
     rospy.init_node('run_session_update_policy', anonymous=True)
     runRobustIrlSessionService = rospy.Service("/runRobustIrlGetPolicy", requestPolicy, cb_runRobustIrlGetPolicy)
     rospy.spin()

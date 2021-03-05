@@ -18,6 +18,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
+catkin_python_setup()
+
 add_service_files(
   FILES
   requestPolicy.srv
@@ -36,4 +38,8 @@ catkin_package(
     CATKIN_DEPENDS # TODO
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
+)
+
+catkin_install_python(PROGRAMS test_Incremental_MaxEntUnknownObsModRobustIRL_dcode.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

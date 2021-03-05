@@ -14,11 +14,10 @@ import util.classes
 from sortingMDP.model import sortingModel,InspectAfterPicking,\
 PlaceOnConveyor,PlaceInBin,Pick,ClaimNewOnion,InspectWithoutPicking,\
 ClaimNextInList,sortingState 
-from sortingMDP.model import sortingModel2,\
-PlaceInBinClaimNextInList,sortingModelbyPSuresh,\
+from sortingMDP.model import PlaceInBinClaimNextInList,sortingModelbyPSuresh,\
 sortingModelbyPSuresh2,sortingModelbyPSuresh3,\
 sortingModelbyPSuresh4,sortingModelbyPSuresh2WOPlaced,\
-sortingModelbyPSuresh3multipleInit
+sortingModelbyPSuresh3multipleInit,sortingModelbyPSuresh4multipleInit_onlyPIP
 
 from sortingMDP.reward import sortingReward2,\
 sortingReward3,sortingReward4,sortingReward5,\
@@ -442,8 +441,9 @@ if __name__ == "__main__":
 	# model = sortingModelbyPSuresh2(p_fail)
 	# model = sortingModelbyPSuresh3(p_fail) 
 	# model = sortingModelbyPSuresh4(p_fail) 
-	model = sortingModelbyPSuresh2WOPlaced(p_fail)
+	# model = sortingModelbyPSuresh2WOPlaced(p_fail)
 	# model = sortingModelbyPSuresh3multipleInit(p_fail) 
+	model = sortingModelbyPSuresh4multipleInit_onlyPIP(p_fail)
 
 	# print(sortingModelbyPSuresh._p_fail) 
 
@@ -553,7 +553,7 @@ if __name__ == "__main__":
 	p.stdout.close()
 	p.stderr.close()
 	
-	n_samples = 1
+	n_samples = 2
 
 	# for each of two runs of irl, t_max will be divided into length_subtrajectory long trajs
 	# t_max = 200
@@ -616,26 +616,48 @@ if __name__ == "__main__":
 
 	ranges_pred_scores = [range_pred_scores1, range_pred_scores2, range_pred_scores3, range_pred_scores4, range_pred_scores5]
 
-	print("writing result of calls to noisyObsRobustSamplingMeirl to file catkin_ws/src/navigation_irl/noisyObsRobustSamplingMeirl_LBA_data.csv") 
+	print("writing result of calls to noisyObsRobustSamplingMeirl to file catkin_ws/src/sorting_patrol_MDP_irl/noisyObsRobustSamplingMeirl_LBA_data.csv") 
 	# output LBA to file
-	f_input_IRL = open(get_home() +'/catkin_ws/src/navigation_irl/noisyObsRobustSamplingMeirl_LBA_data.csv', "w")
+	f_input_IRL = open(get_home() +'/catkin_ws/src/sorting_patrol_MDP_irl/noisyObsRobustSamplingMeirl_LBA_data.csv', "w")
 	f_input_IRL.write("")
 	f_input_IRL.close()
-	f_rec = open(get_home()+'/catkin_ws/src/navigation_irl/noisyObsRobustSamplingMeirl_LBA_data.csv','a') 
+	f_rec = open(get_home()+'/catkin_ws/src/sorting_patrol_MDP_irl/noisyObsRobustSamplingMeirl_LBA_data.csv','a') 
 	csvstring = "\n" 
 
 	for range_sc in ranges_pred_scores: 
 		for sess in range(num_sessions):
 
+			# store only trajectory data
+			f_trajs = open(get_home() + "/Downloads/Dataset.txt", "w")
+			f_trajs.write("")
+			f_trajs.close()
+			f_trajs = open(get_home() + "/Downloads/Dataset.txt", "a")
+
 			traj = []
-			print( "demonstration") 
+			print( "demonstration logging") 
 			for i in range(n_samples): 
-				# traj_list = simulate(model, policy, initial, t_max) 
 				traj_list = sample_traj(model, t_max, initial, policy) 
 				traj.append(traj_list) 
 				# for (s,a,s_p) in traj_list:
 					# print((s,a))
 				# print("\n")
+
+				# dataest for testing ros node 
+				range_p_scores = [0.80,0.95]
+				for (s,a,s_p) in traj_list:
+					print((s,a))
+					f_trajs.write("["+str(s._onion_location)+","\
+						+str(s._prediction)+","\
+						+str(s._EE_location)+","\
+						+str(s._listIDs_status)+"];") 
+					f_trajs.write(str(a)+";") 
+					f_trajs.write(str(random.uniform(range_p_scores[0],range_p_scores[1]))) 
+					f_trajs.write("\n")
+				
+				f_trajs.write("ENDTRAJ\n")
+
+			f_trajs.close()
+			exit(0)
 
 			outtraj = None
 			args = [get_home() +"/catkin_ws/devel/bin/"+ "noisyObsRobustSamplingMeirl", ]
@@ -679,15 +701,14 @@ if __name__ == "__main__":
 			outtraj += lineFoundWeights+lineFeatureExpec+ str(num_Trajsofar)+"\n"  
 
 			# input data to file
-			f_input_IRL = open(get_home() + "/catkin_ws/src/navigation_irl/data_singleTaskIRLNoisyObs_sorting.log", "w")
+			f_input_IRL = open(get_home() + "/catkin_ws/src/sorting_patrol_MDP_irl/data_singleTaskIRLNoisyObs_sorting.log", "w")
 			f_input_IRL.write("")
 			f_input_IRL.close()
-			f_input_IRL = open(get_home() + "/catkin_ws/src/navigation_irl/data_singleTaskIRLNoisyObs_sorting.log", "a")
+			f_input_IRL = open(get_home() + "/catkin_ws/src/sorting_patrol_MDP_irl/data_singleTaskIRLNoisyObs_sorting.log", "a")
 			f_input_IRL.write(outtraj)
 			f_input_IRL.close()
 
 			# print(outtraj)
-			# exit(0)
 
 			(stdout, stderr) = p.communicate(outtraj)
 
